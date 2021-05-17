@@ -11,9 +11,9 @@ extends Node
 onready var BC = $"../"
 
 # Called when the node enters the scene tree for the first time.
-func _ready():
+func _ready() -> void:
 	
-	if BC.CreateInputsForMe:
+	if BC.camera_inputs == BC.INPUTS.CREATE_FOR_ME:
 	
 		# We check for every input to prevent possible errors/duplicates.
 		# A little cumbersome but worth it in the end!
@@ -22,7 +22,7 @@ func _ready():
 		
 		# Left rotation
 		if !InputMap.has_action("cam_look_left"):
-			InputMap.add_action("cam_look_left", BC.JoystickDeadzone)
+			InputMap.add_action("cam_look_left", BC.joystick_deadzone)
 			var event = InputEventJoypadMotion.new()
 			event.axis = JOY_AXIS_2
 			event.axis_value = -1.0
@@ -30,7 +30,7 @@ func _ready():
 		
 		# Right rotation
 		if !InputMap.has_action("cam_look_right"):
-			InputMap.add_action("cam_look_right", BC.JoystickDeadzone)
+			InputMap.add_action("cam_look_right", BC.joystick_deadzone)
 			var event = InputEventJoypadMotion.new()
 			event.axis = JOY_AXIS_2
 			event.axis_value = 1.0
@@ -40,7 +40,7 @@ func _ready():
 		
 		# Up rotation
 		if !InputMap.has_action("cam_look_up"):
-			InputMap.add_action("cam_look_up", BC.JoystickDeadzone)
+			InputMap.add_action("cam_look_up", BC.joystick_deadzone)
 			var event = InputEventJoypadMotion.new()
 			event.axis = JOY_AXIS_3
 			event.axis_value = -1.0
@@ -48,7 +48,7 @@ func _ready():
 		
 		# Down rotation
 		if !InputMap.has_action("cam_look_down"):
-			InputMap.add_action("cam_look_down", BC.JoystickDeadzone)
+			InputMap.add_action("cam_look_down", BC.joystick_deadzone)
 			var event = InputEventJoypadMotion.new()
 			event.axis = JOY_AXIS_3
 			event.axis_value = 1.0
@@ -59,14 +59,14 @@ func _ready():
 		
 		# Gamepad bindings
 		if !InputMap.has_action("zoom"):
-			InputMap.add_action("zoom", BC.JoystickDeadzone)
+			InputMap.add_action("zoom", BC.joystick_deadzone)
 			var event = InputEventJoypadButton.new()
 			event.button_index = 10
 			InputMap.action_add_event("zoom", event)
 		
 		# Mouse bindings
 		if !InputMap.has_action("mouse_zoom_out"):
-			InputMap.add_action("mouse_zoom_out", BC.MouseDeadzone)
+			InputMap.add_action("mouse_zoom_out", BC.mouse_deadzone)
 			var event = InputEventMouseButton.new()
 			event.button_index = BUTTON_WHEEL_DOWN
 			InputMap.action_add_event("mouse_zoom_out", event)

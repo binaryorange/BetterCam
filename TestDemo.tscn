@@ -48,4 +48,4 @@ transform = Transform( 0.462909, 0.441836, -0.768438, 0, 0.866914, 0.498458, 0.8
 shadow_enabled = true
 
 [node name="BetterCam" parent="." instance=ExtResource( 1 )]
-CreateInputsForMe = true
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.04704, 0 )
