@@ -1,20 +1,27 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://BetterCam/CheckInputs.gd" type="Script" id=1]
 [ext_resource path="res://BetterCam/BetterCam.gd" type="Script" id=2]
+
+[sub_resource type="SphereMesh" id=4]
+
+[sub_resource type="SpatialMaterial" id=5]
+emission_enabled = true
+emission = Color( 1, 1, 1, 1 )
+emission_energy = 16.0
+emission_operator = 0
+emission_on_uv2 = false
 
 [sub_resource type="SphereShape" id=1]
 margin = 1.0
 radius = 0.5
 
-[sub_resource type="CubeMesh" id=2]
-size = Vector3( 1, 1, 1 )
+[sub_resource type="SphereMesh" id=6]
 
 [sub_resource type="SpatialMaterial" id=3]
-flags_transparent = true
-albedo_color = Color( 1, 1, 0, 0.0980392 )
+albedo_color = Color( 0, 1, 0, 1 )
 emission_enabled = true
-emission = Color( 1, 1, 0, 1 )
+emission = Color( 0, 1, 0, 1 )
 emission_energy = 1.0
 emission_operator = 0
 emission_on_uv2 = false
@@ -24,6 +31,26 @@ script = ExtResource( 2 )
 
 [node name="XRotationHelper" type="Spatial" parent="."]
 
+[node name="ZoomLevelMarkers" type="Spatial" parent="XRotationHelper"]
+__meta__ = {
+"_editor_description_": "Use these zoom marking indicators to adjust how far the camera can zoom in and out! Defaults are recommended for most game types."
+}
+
+[node name="zoom" type="MeshInstance" parent="XRotationHelper/ZoomLevelMarkers"]
+transform = Transform( 0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 3 )
+mesh = SubResource( 4 )
+material/0 = SubResource( 5 )
+
+[node name="zoom2" type="MeshInstance" parent="XRotationHelper/ZoomLevelMarkers"]
+transform = Transform( 0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 9 )
+mesh = SubResource( 4 )
+material/0 = SubResource( 5 )
+
+[node name="zoom3" type="MeshInstance" parent="XRotationHelper/ZoomLevelMarkers"]
+transform = Transform( 0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 15 )
+mesh = SubResource( 4 )
+material/0 = SubResource( 5 )
+
 [node name="SpringArm" type="SpringArm" parent="XRotationHelper"]
 shape = SubResource( 1 )
 spring_length = 3.0
@@ -32,17 +59,20 @@ margin = 1.0
 [node name="CameraTarget" type="Position3D" parent="XRotationHelper/SpringArm"]
 
 [node name="TargetVisualAid" type="MeshInstance" parent="XRotationHelper/SpringArm/CameraTarget"]
-mesh = SubResource( 2 )
+mesh = SubResource( 6 )
 material/0 = SubResource( 3 )
 
 [node name="Camera" type="Camera" parent="XRotationHelper"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3 )
 current = true
+__meta__ = {
+"_editor_description_": "This camera is positioned according to the information from \"CameraTarget\", which is a child of the \"SpringArm\". This is how we can achieve a smooth camera!"
+}
 
 [node name="CheckInputs" type="Node" parent="."]
 script = ExtResource( 1 )
 __meta__ = {
 "_editor_description_": "This node checks input mappings and adds the appropriate ones for controlling the camera. 
-A check is performed only if \"Create Inputs For Me\" is selected  in \"BetterCam\", allowing you to 
+A check is performed only if \"Create Inputs For Me\" is selected in \"BetterCam\", allowing you to 
 create your own input bindings should you choose to do so."
 }

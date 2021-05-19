@@ -72,9 +72,9 @@ func _ready() -> void:
 			InputMap.action_add_event("_bc_mouse_zoom_out", event)
 			
 		# Now that we're done, inform the user
-		print("Input mappings have been created!")
-		print(InputMap.get_actions())
-		push_warning("Input mappings have been created!")
+#		print("Input mappings have been created!")
+#		print(InputMap.get_actions())
+#		push_warning("Input mappings have been created!")
 	else:
 		printerr("Input mapping for BetterCam has failed! Please make sure 'Create Inputs For Me' is checked!")
 		push_error("Input mapping for BetterCam has failed! Please make sure 'Create Inputs For Me' is checked!")
