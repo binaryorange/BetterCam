@@ -34,8 +34,9 @@ extends Spatial
 """
 enum CamFollowMode {INSTANT, SMOOTH} 
 enum CamSmoothStyle {SMOOTH_IN_OUT, SMOOTH_OUT}
-enum CamTarget {DEFAULT, CUSTOM}
 enum CamDistance {FIXED_DISTANCE, DYNAMIC_DISTANCES}
+enum CamTarget {DEFAULT, CUSTOM}
+enum CamCollisionExceptions {NONE, EXCLUDE_CUSTOM_GROUPS}
 enum InheritPlayerTransform {FALSE, TRUE}
 enum InputMode {MOUSE, GAMEPAD, MOUSE_AND_GAMEPAD}
 enum Inputs {CREATE_FOR_ME, CUSTOM}
@@ -53,6 +54,8 @@ export (CamFollowMode) var camera_follow_mode = CamFollowMode.SMOOTH
 export (CamSmoothStyle) var camera_smooth_style = CamSmoothStyle.SMOOTH_OUT
 export (CamDistance) var camera_distance_mode = CamDistance.DYNAMIC_DISTANCES
 export (CamTarget) var camera_target = CamTarget.DEFAULT
+export (CamCollisionExceptions) var camera_collision_exceptions = CamCollisionExceptions.EXCLUDE_CUSTOM_GROUPS
+export (Array, String) var collision_exceptions = ["[insert a group name here]"]
 export var camera_smooth_speed : float = 0.03 
 export var camera_minimum_distance_to_player : float = 1.0 
 export var camera_rotation_speed : float = 1.0 
@@ -88,21 +91,27 @@ var _zoom : int = 0
 # This stores the custom player transform in a node
 var _player_transform : Node
 
+# Input variables
+var _mouse_moved : bool = false
+var _cam_up : float = 0.0
+var _cam_right : float = 0.0
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	
-	# Determine if we are inheriting the rotation and position from player object
+	# Determine if we are inheriting the rotation and position from a player object.
 	if inherit_player_transform == InheritPlayerTransform.FALSE:
 		self.set_as_toplevel(true)
-	elif inherit_player_transform == InheritPlayerTransform.TRUE:
+	else:
 		# Check if there's anything assigned to player_transform
 		if not player_transform:
+			# Log error message and cause a "crash"
 			printerr("'player_transform unassigned!' Please choose a transform and try again.")
 			push_error("'player_transform unassigned!' Please choose a transform and try again.")
-			# Force close the game
 			get_tree().quit()
 		else:
+			# Get the node the user has assigned to the field
 			_player_transform = get_node(player_transform)
 			self.set_as_toplevel(false)
 	
@@ -111,7 +120,9 @@ func _ready() -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	else:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		
+	
+	# If the user has selected Dynamic Distances, then get the positions of the zoom markers and store
+	# them in the _zoom_level_markers array. Otherwise, skip this step.
 	if camera_distance_mode == CamDistance.DYNAMIC_DISTANCES:
 		# Get and store the zoom levels from the Zoom Level Markers
 		for i in range($XRotationHelper/ZoomLevelMarkers.get_child_count()):
@@ -125,7 +136,57 @@ func _ready() -> void:
 	# Hide the visual aid
 	$XRotationHelper/SpringArm/CameraTarget/TargetVisualAid.hide()
 
+# This supports mouse input
+func _input(event):
+	if camera_input_mode == InputMode.MOUSE or camera_input_mode == InputMode.MOUSE_AND_GAMEPAD:
+		if event is InputEventMouseMotion:
+			_cam_up = deg2rad(event.relative.y * -1)
+			_cam_right = deg2rad(event.relative.x)
+			_mouse_moved = true
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta) -> void:
-	pass
+	rotate_camera()
+	# Reset _mouse_moved at the end of every frame
+	_mouse_moved = false
+
+func rotate_camera():
+	if camera_input_mode == InputMode.MOUSE or camera_input_mode == InputMode.MOUSE_AND_GAMEPAD:
+		if _mouse_moved:
+			_y_gimbal.rotate_y(-_cam_right * mouse_sensitivity)
+			_x_gimbal.rotate_x(_cam_up * mouse_sensitivity)
+			
+	
+	# Clamp the x angle
+	var _x_rotation = _x_gimbal.rotation_degrees
+	_x_rotation.x = clamp(_x_rotation.x, minimum_x_angle, maximum_x_angle)
+	_x_gimbal.rotation_degrees = _x_rotation
+
+func _on_CameraProbe_body_entered(body):
+	if camera_collision_exceptions == CamCollisionExceptions.EXCLUDE_CUSTOM_GROUPS:
+		# Loop through exceptions array
+		if !collision_exceptions.empty():
+			for i in range(collision_exceptions.size()):
+				if !body.is_in_group(collision_exceptions[i]):
+					if _objects.find(body) == -1:
+						_objects.insert(_objects.size(), body)
+						print("Added body " + str(body))
+				else:
+					print("Body is in group " + str(collision_exceptions[i]))
+
+
+func _on_CameraProbe_body_exited(body):
+	if camera_collision_exceptions == CamCollisionExceptions.EXCLUDE_CUSTOM_GROUPS:
+		# Loop through exceptions array
+		if !collision_exceptions.empty():
+			for i in range(collision_exceptions.size()):
+				if !body.is_in_group(collision_exceptions[i]):
+					
+					# Check objects array to make sure it is not empty
+					if _objects.size() != -1:
+						
+						# Search for the body and remove it
+						var _remove = _objects.find(body)
+						if _remove != -1:
+							_objects.remove(_remove)

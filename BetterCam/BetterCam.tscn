@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://BetterCam/CheckInputs.gd" type="Script" id=1]
 [ext_resource path="res://BetterCam/BetterCam.gd" type="Script" id=2]
@@ -26,8 +26,15 @@ emission_energy = 1.0
 emission_operator = 0
 emission_on_uv2 = false
 
+[sub_resource type="SphereShape" id=7]
+margin = 0.5
+
 [node name="BetterCam" type="Spatial"]
 script = ExtResource( 2 )
+__meta__ = {
+"_editor_description_": "Testing 123
+"
+}
 
 [node name="XRotationHelper" type="Spatial" parent="."]
 
@@ -57,6 +64,11 @@ spring_length = 3.0
 margin = 1.0
 
 [node name="CameraTarget" type="Position3D" parent="XRotationHelper/SpringArm"]
+__meta__ = {
+"_editor_description_": "This is the Target that gives the Camera the positioning information. It responds instantly to changes to the SpringArm's length (when a collision happens), but we can tell the Camera to lerp from its current position to the position of the Target.
+
+This results in a smoother camera!"
+}
 
 [node name="TargetVisualAid" type="MeshInstance" parent="XRotationHelper/SpringArm/CameraTarget"]
 mesh = SubResource( 6 )
@@ -69,6 +81,18 @@ __meta__ = {
 "_editor_description_": "This camera is positioned according to the information from \"CameraTarget\", which is a child of the \"SpringArm\". This is how we can achieve a smooth camera!"
 }
 
+[node name="CameraProbe" type="Area" parent="XRotationHelper/Camera"]
+__meta__ = {
+"_editor_description_": "This Area allows us to determine if there's objects (\"Bodies\") that are close enough to the camera that it should stay in clipping mode. 
+
+This works in conjunction with the \"Camera Collision Exceptions\" array, and will NOT clip to an object that is in any of the groups you tell it to ignore. 
+
+If an object is not in any of the groups, it will be considered clippable geometry."
+}
+
+[node name="CollisionShape" type="CollisionShape" parent="XRotationHelper/Camera/CameraProbe"]
+shape = SubResource( 7 )
+
 [node name="CheckInputs" type="Node" parent="."]
 script = ExtResource( 1 )
 __meta__ = {
@@ -76,3 +100,6 @@ __meta__ = {
 A check is performed only if \"Create Inputs For Me\" is selected in \"BetterCam\", allowing you to 
 create your own input bindings should you choose to do so."
 }
+
+[connection signal="body_entered" from="XRotationHelper/Camera/CameraProbe" to="." method="_on_CameraProbe_body_entered"]
+[connection signal="body_exited" from="XRotationHelper/Camera/CameraProbe" to="." method="_on_CameraProbe_body_exited"]
